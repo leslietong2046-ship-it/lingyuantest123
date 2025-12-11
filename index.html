@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>云祭祀 - 缅怀先烈</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1a2b3c',
+                        secondary: '#c8102e',
+                        accent: '#f5f5f5',
+                        dark: '#0f172a',
+                        light: '#ffffff',
+                        gold: '#d4af37'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    animation: {
+                        'float-up': 'floatUp 3s ease-in-out forwards',
+                        'slide-left': 'slideLeft 8s linear forwards',
+                        'fade-in': 'fadeIn 0.5s ease-in-out forwards',
+                        'fade-out': 'fadeOut 0.5s ease-in-out forwards',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        floatUp: {
+                            '0%': { transform: 'translateY(0)', opacity: '1' },
+                            '100%': { transform: 'translateY(-200px)', opacity: '0' }
+                        },
+                        slideLeft: {
+                            '0%': { transform: 'translateX(100%)', opacity: '1' },
+                            '100%': { transform: 'translateX(-100%)', opacity: '1' }
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' }
+                        },
+                        fadeOut: {
+                            '0%': { opacity: '1' },
+                            '100%': { opacity: '0' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-shadow {
+                text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+            }
+            .text-shadow-lg {
+                text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.8);
+            }
+            .bg-blur {
+                backdrop-filter: blur(8px);
+            }
+            .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+            }
+            .scrollbar-hide {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+        }
+
+        body {
+            background-color: theme('colors.dark');
+            color: theme('colors.light');
+            font-family: theme('fontFamily.sans');
+            overflow-x: hidden;
+        }
+
+        .hero-section {
+            position: relative;
+            height: 60vh;
+            min-height: 400px;
+            overflow: hidden;
+        }
+
+        .hero-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: brightness(0.7);
+        }
+
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(15, 23, 42, 0.3), rgba(15, 23, 42, 0.8));
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 10;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0 1rem;
+        }
+
+        .danmaku-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .danmaku {
+            position: absolute;
+            white-space: nowrap;
+            font-size: 16px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            opacity: 0.9;
+            padding: 4px 8px;
+            border-radius: 16px;
+            transform: translateX(100%);
+            transition: transform 8s linear;
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 100;
+        }
+        
+        /* 弹幕颜色变体 */
+        .danmaku.color-red {
+            color: #ff6b6b;
+            background-color: rgba(255, 107, 107, 0.2);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+        }
+        
+        .danmaku.color-blue {
+            color: #6b93ff;
+            background-color: rgba(107, 147, 255, 0.2);
+            border: 1px solid rgba(107, 147, 255, 0.3);
+        }
+        
+        .danmaku.color-green {
+            color: #6bff93;
+            background-color: rgba(107, 255, 147, 0.2);
+            border: 1px solid rgba(107, 255, 147, 0.3);
+        }
+        
+        .danmaku.color-yellow {
+            color: #ffd96b;
+            background-color: rgba(255, 217, 107, 0.2);
+            border: 1px solid rgba(255, 217, 107, 0.3);
+        }
+        
+        .danmaku.color-purple {
+            color: #c76bff;
+            background-color: rgba(199, 107, 255, 0.2);
+            border: 1px solid rgba(199, 107, 255, 0.3);
+        }
+        
+        .danmaku-like {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .danmaku-like:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+        
+        .danmaku-like.liked {
+            color: #c8102e;
+            background-color: rgba(200, 16, 46, 0.2);
+        }
+        
+        .danmaku-like i {
+            transition: color 0.2s ease;
+        }
+        
+        .danmaku-like.liked i {
+            color: #c8102e;
+        }
+        
+        .danmaku-like-count {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+            min-width: 16px;
+            text-align: right;
+        }
+
+        .flower-animation {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 60px;
+            z-index: 20;
+            animation: floatUp 3s ease-in-out forwards;
+        }
+
+        .flower-animation img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .dedication-section {
+            background-color: theme('colors.primary');
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .dedication-text {
+            font-size: 14px;
+            line-height: 1.6;
+            color: theme('colors.accent');
+            text-align: center;
+        }
+
+        .dedication-author {
+            font-size: 12px;
+            color: theme('colors.gold');
+            text-align: right;
+            margin-top: 0.5rem;
+        }
+
+        .danmaku-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .danmaku-option {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 16px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .danmaku-option:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        .danmaku-option:active {
+            transform: scale(0.95);
+        }
+
+        .flower-button {
+            background-color: theme('colors.secondary');
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin: 1rem auto;
+        }
+
+        .flower-button:hover {
+            background-color: #a80d26;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .flower-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .flower-count {
+            text-align: center;
+            color: theme('colors.gold');
+            font-size: 14px;
+            margin-top: 0.5rem;
+        }
+
+        .footer {
+            background-color: theme('colors.dark');
+            padding: 1rem;
+            text-align: center;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        @media (max-width: 480px) {
+            .hero-section {
+                height: 50vh;
+                min-height: 350px;
+            }
+            
+            .danmaku {
+                font-size: 14px;
+            }
+            
+            .dedication-section {
+                margin: 0.5rem;
+                padding: 1rem;
+            }
+            
+            .danmaku-options {
+                padding: 0.5rem;
+            }
+            
+            .danmaku-option {
+                font-size: 12px;
+                padding: 6px 10px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-dark">
+    <!-- 顶部导航栏 -->
+    <header class="bg-primary shadow-md">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center">
+                <i class="fa fa-flag text-secondary text-xl mr-2"></i>
+                <h1 class="text-light text-xl font-bold">云祭祀</h1>
+            </div>
+            <button class="text-light hover:text-secondary transition-colors">
+                <i class="fa fa-home"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- 中部装饰区 -->
+    <section class="hero-section">
+        <img src="https://p26-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/433eaabf0c3e4f0a813507f4fae3fe77.png~tplv-a9rns2rl98-24:720:720.png?rcl=20251210183811EA7248E2BA33DB836815&rk3s=8e244e95&rrcfp=8a172a1a&x-expires=1765967891&x-signature=OOCb63Kg4i7k5z6koJXqHsN9A2o%3D" alt="西安市烈士陵园" class="hero-image">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h2 class="text-3xl font-bold text-light mb-2 text-shadow-lg">人民英雄永垂不朽</h2>
+            <p class="text-accent text-sm max-w-xs text-shadow">西安烈士陵园位于陕西省西安市雁塔区明德一路。烈士陵园由烈士纪念馆、纪念广场、烈士墓区、烈士英名墙、神道和办公区组成，其功能为褒扬英烈，教育群众，启迪后人。园内安放着自大革命时期以来牺牲的797位烈士！其中著名的烈士有：大革命时期英勇就义的革命志士王德安等“西安九烈士”、抗日战争中的民族英雄刘桂五、解放战争中的杜斌丞、战斗英雄秦富德、抗美援朝中的“八勇士”之一侯天佑、社会主义建设时期雷锋式的英雄模范张华等。</p>
+        </div>
+        <!-- 弹幕展示区 -->
+        <div id="danmakuContainer" class="danmaku-container"></div>
+    </section>
+
+    <!-- 献花功能区 -->
+    <section class="px-4 py-6">
+        <div class="dedication-section">
+            <p class="dedication-text">
+                一个有希望的民族不能没有英雄，一个有前途的国家不能没有先锋
+            </p>
+        </div>
+
+        <div class="mx-auto max-w-xs mb-4">
+            <h4 class="text-center text-light text-base font-medium mb-2">选择鲜花种类</h4>
+            <div class="grid grid-cols-3 gap-2">
+                <button class="flower-type-btn bg-white/10 p-2 rounded-lg flex flex-col items-center hover:bg-secondary/70 transition-colors" data-flower-type="white-chrysanthemum">
+                    <img src="https://p11-doubao-search-sign.byteimg.com/labis/27ce543a9896b46a62ded5ff0686886c~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&x-expires=1780913840&x-signature=S7RxW%2BUhZEx4%2FDrrLv6zO2NwlaQ%3D" alt="白菊" class="w-12 h-12 object-cover rounded-md mb-1">
+                    <span class="text-xs text-light">白菊</span>
+                </button>
+                <button class="flower-type-btn bg-white/10 p-2 rounded-lg flex flex-col items-center hover:bg-secondary/70 transition-colors" data-flower-type="yellow-chrysanthemum">
+                    <img src="https://p11-doubao-search-sign.byteimg.com/labis/675f0978ad046d402ccdebdd17cd408c~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&x-expires=1780913840&x-signature=zthSQrpptzq1SeLlGNbMOgvQRsQ%3D" alt="黄菊" class="w-12 h-12 object-cover rounded-md mb-1">
+                    <span class="text-xs text-light">黄菊</span>
+                </button>
+                <button class="flower-type-btn bg-white/10 p-2 rounded-lg flex flex-col items-center hover:bg-secondary/70 transition-colors" data-flower-type="mixed-flowers">
+                    <img src="https://p11-doubao-search-sign.byteimg.com/labis/812047fa4f75f2fbfef68d2bf50c673f~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&x-expires=1780913840&x-signature=tkdzHT5R1H4lfm0j%2BFdAJyx8Wwo%3D" alt="混合花束" class="w-12 h-12 object-cover rounded-md mb-1">
+                    <span class="text-xs text-light">混合花束</span>
+                </button>
+            </div>
+        </div>
+
+        <button id="flowerButton" class="flower-button">
+            <i class="fa fa-heart"></i>
+            敬献鲜花
+        </button>
+        <p id="flowerCount" class="flower-count">已敬献鲜花：0 束</p>
+    </section>
+
+    <!-- 弹幕发送区 -->
+    <section class="px-4 py-2">
+        <h3 class="text-center text-light text-lg font-semibold mb-3">发送缅怀弹幕</h3>
+        <div class="danmaku-options">
+            <button class="danmaku-option" data-text="缅怀先烈，致敬英雄">缅怀先烈，致敬英雄</button>
+            <button class="danmaku-option" data-text="烈士精神永垂不朽">烈士精神永垂不朽</button>
+            <button class="danmaku-option" data-text="传承英烈志，奋进新时代">传承英烈志，奋进新时代</button>
+            <button class="danmaku-option" data-text="铭记历史，缅怀先烈">铭记历史，缅怀先烈</button>
+            <button class="danmaku-option" data-text="致敬英雄，吾辈自强">致敬英雄，吾辈自强</button>
+            <button class="danmaku-option" data-text="革命先烈浩气长存">革命先烈浩气长存</button>
+            <button class="danmaku-option" data-text="英雄事迹永载史册">英雄事迹永载史册</button>
+            <button class="danmaku-option" data-text="继承先烈遗志，砥砺前行">继承先烈遗志，砥砺前行</button>
+            <button class="danmaku-option" data-text="为中华民族伟大复兴而奋斗">为中华民族伟大复兴而奋斗</button>
+            <button class="danmaku-option" data-text="铭记历史，珍爱和平">铭记历史，珍爱和平</button>
+        </div>
+    </section>
+
+    <!-- 烈士英名展示区 -->
+    <section class="px-4 py-6">
+        <div class="bg-primary rounded-lg p-4">
+            <h3 class="text-center text-light text-base font-semibold mb-3">革命英烈永垂不朽</h3>
+            <div class="flex flex-wrap justify-center gap-2">
+                <div id="martyrNameContainer" class="w-full text-center">
+                    <span id="martyrName" class="text-secondary text-lg font-medium">点击下方按钮随机缅怀英烈</span>
+                </div>
+            </div>
+            <button id="randomMartyrBtn" class="w-full mt-4 bg-secondary/20 text-light py-2 rounded-lg hover:bg-secondary/30 transition-colors">
+                <i class="fa fa-refresh mr-2"></i>随机缅怀英烈
+            </button>
+        </div>
+    </section>
+
+
+
+    <!-- 底部 -->
+    <footer class="footer">
+        <p>i西安 - 缅怀先烈，致敬英雄</p>
+    </footer>
+
+    <script>
+        // 初始化献花数量
+        let flowerCount = localStorage.getItem('flowerCount') ? parseInt(localStorage.getItem('flowerCount')) : 0;
+        document.getElementById('flowerCount').textContent = `已敬献鲜花：${flowerCount} 束`;
+
+        // 鲜花类型选择
+        let selectedFlowerType = 'white-chrysanthemum'; // 默认选择白菊
+        const flowerTypeButtons = document.querySelectorAll('.flower-type-btn');
+        const flowerImages = {
+            'white-chrysanthemum': 'https://p11-doubao-search-sign.byteimg.com/labis/27ce543a9896b46a62ded5ff0686886c~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&x-expires=1780913840&x-signature=S7RxW%2BUhZEx4%2FDrrLv6zO2NwlaQ%3D',
+            'yellow-chrysanthemum': 'https://p11-doubao-search-sign.byteimg.com/labis/675f0978ad046d402ccdebdd17cd408c~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&x-expires=1780913840&x-signature=zthSQrpptzq1SeLlGNbMOgvQRsQ%3D',
+            'mixed-flowers': 'https://p11-doubao-search-sign.byteimg.com/labis/812047fa4f75f2fbfef68d2bf50c673f~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&x-expires=1780913840&x-signature=tkdzHT5R1H4lfm0j%2BFdAJyx8Wwo%3D'
+        };
+        
+        // 初始化选中状态
+        flowerTypeButtons[0].classList.add('ring-2', 'ring-secondary');
+        
+        flowerTypeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // 移除所有按钮的选中状态
+                flowerTypeButtons.forEach(btn => btn.classList.remove('ring-2', 'ring-secondary'));
+                
+                // 添加当前按钮的选中状态
+                this.classList.add('ring-2', 'ring-secondary');
+                
+                // 更新选中的鲜花类型
+                selectedFlowerType = this.getAttribute('data-flower-type');
+            });
+        });
+        
+        // 献花功能
+        document.getElementById('flowerButton').addEventListener('click', function() {
+            // 创建花束动画
+            const flowerAnimation = document.createElement('div');
+            flowerAnimation.className = 'flower-animation';
+            flowerAnimation.innerHTML = `<img src="${flowerImages[selectedFlowerType]}" alt="花束">`;
+            
+            // 将花束添加到英雄区域
+            document.querySelector('.hero-section').appendChild(flowerAnimation);
+            
+            // 更新献花数量
+            flowerCount++;
+            localStorage.setItem('flowerCount', flowerCount);
+            document.getElementById('flowerCount').textContent = `已敬献鲜花：${flowerCount} 束`;
+            
+            // 动画结束后移除花束元素
+            setTimeout(() => {
+                flowerAnimation.remove();
+            }, 3000);
+        });
+
+        // 弹幕功能
+        const danmakuContainer = document.getElementById('danmakuContainer');
+        const danmakuOptions = document.querySelectorAll('.danmaku-option');
+        const danmakuTexts = [
+            '缅怀先烈，致敬英雄',
+            '烈士精神永垂不朽',
+            '传承英烈志，奋进新时代',
+            '铭记历史，缅怀先烈',
+            '致敬英雄，吾辈自强',
+            '革命先烈浩气长存',
+            '英雄事迹永载史册',
+            '继承先烈遗志，砥砺前行',
+            '为中华民族伟大复兴而奋斗',
+            '铭记历史，珍爱和平',
+            '缅怀革命先烈，弘扬民族精神',
+            '致敬最可爱的人',
+            '没有你们的牺牲，就没有我们的今天',
+            '先烈精神，薪火相传',
+            '感恩先烈，珍惜当下',
+            '英雄不朽，精神永存',
+            '缅怀先烈伟绩，共创美好未来',
+            '铭记英雄事迹，传承红色基因',
+            '先烈热血铸丰碑，后辈承志创未来',
+            '致敬革命先烈，传承民族精神'
+        ];
+
+        // 初始化弹幕点赞数据
+        let danmakuLikes = JSON.parse(localStorage.getItem('danmakuLikes')) || {};
+        
+        // 保存弹幕点赞数据到本地存储
+        function saveDanmakuLikes() {
+            localStorage.setItem('danmakuLikes', JSON.stringify(danmakuLikes));
+        }
+        
+        // 发送弹幕函数
+        function sendDanmaku(text, id = null, likes = 0) {
+            // 生成唯一ID或使用传入的ID
+            const danmakuId = id || 'danmaku_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            
+            // 随机选择弹幕颜色
+            const colors = ['color-red', 'color-blue', 'color-green', 'color-yellow', 'color-purple'];
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+            
+            const danmaku = document.createElement('div');
+            danmaku.className = `danmaku ${randomColor}`;
+            danmaku.setAttribute('data-id', danmakuId);
+            
+            // 创建弹幕内容和点赞按钮
+            danmaku.innerHTML = `
+                <span class="danmaku-text">${text}</span>
+                <div class="danmaku-like" data-danmaku-id="${danmakuId}">
+                    <i class="fa fa-heart"></i>
+                </div>
+                <span class="danmaku-like-count">${likes}</span>
+            `;
+            
+            // 添加点赞按钮事件监听
+            const likeButton = danmaku.querySelector('.danmaku-like');
+            likeButton.addEventListener('click', function() {
+                const id = this.getAttribute('data-danmaku-id');
+                toggleDanmakuLike(id);
+            });
+            
+            // 随机高度
+            const containerHeight = danmakuContainer.offsetHeight;
+            const danmakuHeight = 30; // 预估弹幕高度
+            const maxTop = containerHeight - danmakuHeight;
+            const top = Math.floor(Math.random() * maxTop);
+            
+            // 设置弹幕位置
+            danmaku.style.top = `${top}px`;
+            
+            // 添加到容器
+            danmakuContainer.appendChild(danmaku);
+            
+            // 强制重排以确保动画正常触发
+            void danmaku.offsetWidth;
+            
+            // 开始动画
+            setTimeout(() => {
+                danmaku.style.transform = 'translateX(-100%)';
+            }, 10);
+            
+            // 动画结束后移除弹幕
+            setTimeout(() => {
+                danmaku.remove();
+            }, 8000);
+            
+            return danmakuId;
+        }
+        
+        // 切换弹幕点赞状态
+        function toggleDanmakuLike(danmakuId) {
+            console.log('点赞按钮被点击，弹幕ID:', danmakuId);
+            
+            // 获取当前点赞数
+            const currentLikes = danmakuLikes[danmakuId] || 0;
+            console.log('当前点赞数:', currentLikes);
+            
+            // 检查是否已点赞（通过本地存储记录用户点赞的弹幕）
+            const userLikedDanmakus = JSON.parse(localStorage.getItem('userLikedDanmakus')) || [];
+            const isLiked = userLikedDanmakus.includes(danmakuId);
+            console.log('是否已点赞:', isLiked);
+            
+            if (isLiked) {
+                // 取消点赞
+                danmakuLikes[danmakuId] = Math.max(0, currentLikes - 1);
+                userLikedDanmakus.splice(userLikedDanmakus.indexOf(danmakuId), 1);
+                console.log('取消点赞，新点赞数:', danmakuLikes[danmakuId]);
+            } else {
+                // 添加点赞
+                danmakuLikes[danmakuId] = currentLikes + 1;
+                userLikedDanmakus.push(danmakuId);
+                console.log('添加点赞，新点赞数:', danmakuLikes[danmakuId]);
+            }
+            
+            // 保存更新后的数据
+            saveDanmakuLikes();
+            localStorage.setItem('userLikedDanmakus', JSON.stringify(userLikedDanmakus));
+            console.log('数据已保存到本地存储');
+            
+            // 更新UI
+            updateDanmakuLikeUI(danmakuId);
+        }
+        
+        // 更新弹幕点赞UI
+        function updateDanmakuLikeUI(danmakuId) {
+            console.log('更新弹幕UI，弹幕ID:', danmakuId);
+            
+            const danmaku = document.querySelector(`.danmaku[data-id="${danmakuId}"]`);
+            if (!danmaku) {
+                console.log('未找到弹幕元素');
+                return;
+            }
+            
+            const likeCount = danmakuLikes[danmakuId] || 0;
+            const likeButton = danmaku.querySelector('.danmaku-like');
+            const likeCountElement = danmaku.querySelector('.danmaku-like-count');
+            
+            if (!likeButton || !likeCountElement) {
+                console.log('未找到点赞按钮或计数元素');
+                return;
+            }
+            
+            console.log('更新点赞数为:', likeCount);
+            
+            // 更新点赞数
+            likeCountElement.textContent = likeCount;
+            
+            // 更新点赞按钮状态
+            const userLikedDanmakus = JSON.parse(localStorage.getItem('userLikedDanmakus')) || [];
+            if (userLikedDanmakus.includes(danmakuId)) {
+                console.log('添加liked类');
+                likeButton.classList.add('liked');
+                likeButton.querySelector('i').classList.add('text-secondary');
+            } else {
+                console.log('移除liked类');
+                likeButton.classList.remove('liked');
+                likeButton.querySelector('i').classList.remove('text-secondary');
+            }
+            
+            // 添加点赞动画效果
+            likeButton.classList.add('scale-110');
+            setTimeout(() => {
+                likeButton.classList.remove('scale-110');
+            }, 300);
+        }
+
+        // 为弹幕选项添加点击事件
+        danmakuOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                const text = this.getAttribute('data-text');
+                const danmakuId = sendDanmaku(text);
+                
+                // 初始化该弹幕的点赞数据
+                if (!danmakuLikes[danmakuId]) {
+                    danmakuLikes[danmakuId] = 0;
+                    saveDanmakuLikes();
+                }
+                
+                // 添加点击效果
+                this.classList.add('bg-secondary');
+                setTimeout(() => {
+                    this.classList.remove('bg-secondary');
+                }, 200);
+            });
+        });
+
+        // 页面停留时间计时器
+        let pageStayTimer = 0;
+        let intensiveModeActive = false;
+        
+        // 监听页面可见性变化
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                // 页面不可见时暂停计时器
+                clearInterval(pageStayInterval);
+            } else {
+                // 页面可见时恢复计时器
+                startPageStayTimer();
+            }
+        });
+        
+        // 开始页面停留时间计时
+        function startPageStayTimer() {
+            pageStayInterval = setInterval(function() {
+                pageStayTimer++;
+                
+                // 页面停留超过1秒后激活密集弹幕模式
+                if (pageStayTimer > 1 && !intensiveModeActive) {
+                    intensiveModeActive = true;
+                    startIntensiveDanmaku();
+                }
+            }, 1000);
+        }
+        
+        // 启动页面停留计时器
+        let pageStayInterval = setInterval(function() {
+            pageStayTimer++;
+            
+            // 页面停留超过1秒后激活密集弹幕模式
+            if (pageStayTimer > 1 && !intensiveModeActive) {
+                intensiveModeActive = true;
+                startIntensiveDanmaku();
+            }
+        }, 1000);
+        
+        // 标准弹幕模式
+        function autoSendDanmaku() {
+            const randomIndex = Math.floor(Math.random() * danmakuTexts.length);
+            sendDanmaku(danmakuTexts[randomIndex]);
+            
+            // 随机间隔发送下一条弹幕
+            const nextTime = Math.floor(Math.random() * 3000) + 2000; // 2-5秒
+            setTimeout(autoSendDanmaku, nextTime);
+        }
+        
+        // 密集弹幕模式
+        function startIntensiveDanmaku() {
+            // 创建更多弹幕文本，增加烈士名字
+            const intensiveDanmakuTexts = [
+                ...danmakuTexts,
+                ...martyrNames.map(name => `缅怀${name}烈士`),
+                ...martyrNames.map(name => `${name}烈士永垂不朽`),
+                ...martyrNames.map(name => `致敬英雄${name}`),
+                "革命先烈浩气长存",
+                "英雄事迹永载史册",
+                "继承先烈遗志，砥砺前行",
+                "为中华民族伟大复兴而奋斗",
+                "铭记历史，珍爱和平",
+                "缅怀革命先烈，弘扬民族精神",
+                "致敬最可爱的人",
+                "没有你们的牺牲，就没有我们的今天",
+                "先烈精神，薪火相传",
+                "感恩先烈，珍惜当下"
+            ];
+            
+            // 密集发送弹幕
+            function sendIntensiveDanmaku() {
+                // 每次发送1-3条弹幕
+                const count = Math.floor(Math.random() * 3) + 1;
+                
+                for (let i = 0; i < count; i++) {
+                    const randomIndex = Math.floor(Math.random() * intensiveDanmakuTexts.length);
+                    sendDanmaku(intensiveDanmakuTexts[randomIndex]);
+                }
+                
+                // 短间隔发送下一批弹幕
+                const nextTime = Math.floor(Math.random() * 800) + 200; // 0.2-1秒
+                setTimeout(sendIntensiveDanmaku, nextTime);
+            }
+            
+            // 启动密集弹幕模式
+            sendIntensiveDanmaku();
+        }
+
+        // 烈士名字数据
+        const martyrNames = [
+            "杨力", "马洪亮", "周同生", "刘继满", "卫玉生",
+            "王广", "冯红江", "杨法震", "孟庆印", "韩增友",
+            "陈仁", "余洪模", "岳增寿", "谭昌言", "张宏泰",
+            "石林林", "王西海", "郭秀云", "云照光", "梁锦枝",
+            "张有才", "魏振华", "郭启治", "王有科", "李荣祥",
+            "张德胜", "高克林", "马永祥", "李发", "申彤"
+        ];
+
+        // 随机显示烈士名字
+        const randomMartyrBtn = document.getElementById('randomMartyrBtn');
+        const martyrNameElement = document.getElementById('martyrName');
+
+        function showRandomMartyr() {
+            const randomIndex = Math.floor(Math.random() * martyrNames.length);
+            const randomName = martyrNames[randomIndex];
+            
+            // 添加淡出效果
+            martyrNameElement.style.opacity = '0';
+            martyrNameElement.style.transition = 'opacity 0.3s ease';
+            
+            // 延迟后更新内容并添加淡入效果
+            setTimeout(() => {
+                martyrNameElement.textContent = randomName;
+                martyrNameElement.style.opacity = '1';
+                
+                // 添加高亮动画
+                martyrNameElement.classList.add('animate-pulse-slow');
+                setTimeout(() => {
+                    martyrNameElement.classList.remove('animate-pulse-slow');
+                }, 1500);
+            }, 300);
+        }
+
+        // 绑定随机显示烈士名字按钮事件
+        randomMartyrBtn.addEventListener('click', showRandomMartyr);
+
+        // 页面加载后开始自动发送弹幕
+        window.addEventListener('load', function() {
+            setTimeout(autoSendDanmaku, 2000);
+        });
+    </script>
+</body>
+</html>
